@@ -33,10 +33,10 @@ for typePair = [("UInt32", UInt32),
 				("Session", UInt32)
 				]
 
-	viTypeName = symbol("Vi"*typePair[1])
-	viConsructorName = symbol("vi"*typePair[1])
-	viPTypeName = symbol("ViP"*typePair[1])
-	viATypeName = symbol("ViA"*typePair[1])
+	viTypeName = Symbol("Vi"*typePair[1])
+	viConsructorName = Symbol("vi"*typePair[1])
+	viPTypeName = Symbol("ViP"*typePair[1])
+	viATypeName = Symbol("ViA"*typePair[1])
 	@eval begin
 		typealias $viTypeName $typePair[2]
 		$viConsructorName(x) = convert($viTypeName, x)
@@ -49,11 +49,11 @@ for typePair = [("Buf", "PByte"),
 				("String", "PChar"),
 				("Rsrc", "String")
 				]
-	viTypeName = symbol("Vi"*typePair[1])
-	viPTypeName = symbol("ViP"*typePair[1])
-	viATypeName = symbol("ViA"*typePair[1])
+	viTypeName = Symbol("Vi"*typePair[1])
+	viPTypeName = Symbol("ViP"*typePair[1])
+	viATypeName = Symbol("ViA"*typePair[1])
 
-	mappedViType = symbol("Vi"*typePair[2])
+	mappedViType = Symbol("Vi"*typePair[2])
 
 	@eval begin
 		typealias $viTypeName $mappedViType
@@ -116,12 +116,12 @@ function viFindRsrc(sesn::ViSession, expr::AbstractString)
 						sesn, expr, findList, returnCount, desc)
 
 	#Create the array of instrument strings and push them on
-	instrStrs = ASCIIString[bytestring(convert(Ptr{UInt8}, pointer(desc)))]
+	instrStrs = String[unsafe_string(convert(Ptr{UInt8}, pointer(desc)))]
 	while (returnCount[1] > 1)
 		@check_status ccall((:viFindNext, libvisa), ViStatus,
 						(ViFindList, ViPChar), findList[1], desc)
 		returnCount[1] -= 1
-		push!(instrStrs, bytestring(convert(Ptr{UInt8}, pointer(desc))))
+		push!(instrStrs, unsafe_string(convert(Ptr{UInt8}, pointer(desc))))
 	end
 
 	instrStrs
@@ -137,7 +137,7 @@ end
 #                                     ViChar _VI_FAR aliasIfExists[]);
 
 
-function viOpen(sesn::ViSession, name::ASCIIString; mode::ViAccessMode=VI_NO_LOCK, timeout::ViUInt32=VI_TMO_IMMEDIATE)
+function viOpen(sesn::ViSession, name::String; mode::ViAccessMode=VI_NO_LOCK, timeout::ViUInt32=VI_TMO_IMMEDIATE)
 	#Pointer for the instrument handle
 	instrHandle = ViSession[0]
 	@check_status ccall((:viOpen, libvisa), ViStatus,
@@ -224,7 +224,7 @@ end
 
 #- Basic I/O Operations ----------------------------------------------------#
 
-function viWrite(instrHandle::ViSession, data::Union{ASCIIString, Vector{UInt8}})
+function viWrite(instrHandle::ViSession, data::Union{String, Vector{UInt8}})
 	bytesWritten = ViUInt32[0]
 	@check_status ccall((:viWrite, libvisa), ViStatus,
 						(ViSession, ViBuf, ViUInt32, ViPUInt32),

@@ -35,13 +35,13 @@ macro check_connected(ex)
 	return Expr(:function, esc(funcproto), esc(checkbody))
 end
 
-@check_connected write(instr::Instrument, msg::ASCIIString) = viWrite(instr.handle, msg)
+@check_connected write(instr::Instrument, msg::String) = viWrite(instr.handle, msg)
 
-@check_connected read(instr::Instrument) = rstrip(bytestring(viRead(instr.handle; bufSize=instr.bufSize)), ['\r', '\n'])
+@check_connected read(instr::Instrument) = rstrip(unsafe_string(viRead(instr.handle; bufSize=instr.bufSize)), ['\r', '\n'])
 
 @check_connected readavailable(instr::Instrument) = readavailable(instr.handle)
 
-function query(instr::Instrument, msg::ASCIIString; delay::Real=0)
+function query(instr::Instrument, msg::String; delay::Real=0)
 	write(instr, msg)
 	sleep(delay)
 	read(instr)
